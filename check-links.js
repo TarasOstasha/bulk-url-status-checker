@@ -4,7 +4,7 @@ const fs = require("fs");
 const INPUT_FILE = "check_http_req_status.xlsx";
 const OUTPUT_FILE = "check_http_req_status_results.xlsx";
 
-const DELAY_MS = 1000; // 1 request per second
+const DELAY_MS = 2000; // 1 request per 2 seconds
 const TIMEOUT_MS = 15000; // 15 second timeout
 const CHECKPOINT_EVERY = 100;
 
@@ -24,11 +24,7 @@ function saveResults(data) {
   const outputSheet = XLSX.utils.json_to_sheet(data);
   const outputWorkbook = XLSX.utils.book_new();
 
-  XLSX.utils.book_append_sheet(
-    outputWorkbook,
-    outputSheet,
-    "Results"
-  );
+  XLSX.utils.book_append_sheet(outputWorkbook, outputSheet, "Results");
 
   XLSX.writeFile(outputWorkbook, OUTPUT_FILE);
 }
@@ -57,30 +53,23 @@ if (fs.existsSync(OUTPUT_FILE)) {
   console.log("Loading previous progress...");
 
   const previousWorkbook = XLSX.readFile(OUTPUT_FILE);
-  const previousSheet =
-    previousWorkbook.Sheets[previousWorkbook.SheetNames[0]];
+  const previousSheet = previousWorkbook.Sheets[previousWorkbook.SheetNames[0]];
 
-  const previousRows =
-    XLSX.utils.sheet_to_json(previousSheet);
+  const previousRows = XLSX.utils.sheet_to_json(previousSheet);
 
   const previousResults = new Map();
 
   for (const row of previousRows) {
     if (row.productcode && row.result) {
-      previousResults.set(
-        String(row.productcode).toLowerCase(),
-        {
-          http_status: row.http_status || "",
-          result: row.result,
-        }
-      );
+      previousResults.set(String(row.productcode).toLowerCase(), {
+        http_status: row.http_status || "",
+        result: row.result,
+      });
     }
   }
 
   for (const row of rows) {
-    const previous = previousResults.get(
-      String(row.productcode).toLowerCase()
-    );
+    const previous = previousResults.get(String(row.productcode).toLowerCase());
 
     if (previous) {
       row.http_status = previous.http_status;
@@ -111,7 +100,7 @@ async function checkUrls() {
       skipped++;
 
       console.log(
-        `[${i + 1}/${rows.length}] SKIP ${row.productcode} - already checked`
+        `[${i + 1}/${rows.length}] SKIP ${row.productcode} - already checked`,
       );
 
       continue;
@@ -121,9 +110,7 @@ async function checkUrls() {
 
     // Missing URL
     if (!url) {
-      console.log(
-        `\n[${i + 1}/${rows.length}] ${row.productcode} - NO URL`
-      );
+      console.log(`\n[${i + 1}/${rows.length}] ${row.productcode} - NO URL`);
 
       row.http_status = "";
       row.result = "NO URL";
@@ -134,9 +121,7 @@ async function checkUrls() {
       continue;
     }
 
-    console.log(
-      `\n[${i + 1}/${rows.length}] Checking ${row.productcode}`
-    );
+    console.log(`\n[${i + 1}/${rows.length}] Checking ${row.productcode}`);
 
     console.log(url);
 
@@ -146,6 +131,10 @@ async function checkUrls() {
         redirect: "manual",
         signal: AbortSignal.timeout(TIMEOUT_MS),
       });
+        // We only need the HTTP status, not the HTML page
+      if (response.body) {
+        await response.body.cancel();
+      }
 
       let result;
 
@@ -174,9 +163,7 @@ async function checkUrls() {
       row.http_status = response.status;
       row.result = result;
 
-      console.log(
-        `HTTP Status: ${response.status} - ${result}`
-      );
+      console.log(`HTTP Status: ${response.status} - ${result}`);
     } catch (error) {
       row.http_status = "";
       row.result = "ERROR";
@@ -195,9 +182,7 @@ async function checkUrls() {
     if (checked % CHECKPOINT_EVERY === 0) {
       saveResults(rows);
 
-      console.log(
-        `\n--- CHECKPOINT SAVED: ${checked} new URLs checked ---`
-      );
+      console.log(`\n--- CHECKPOINT SAVED: ${checked} new URLs checked ---`);
     }
 
     // --------------------------------------------------
