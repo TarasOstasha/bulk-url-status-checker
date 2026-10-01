@@ -1,0 +1,31 @@
+# Node dependencies
+node_modules/
+
+# Input / output Excel files
+*.xlsx
+*.xls
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+
+
+# Allow example/template Excel
+!check_http_req_status.example.xlsx

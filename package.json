@@ -1,0 +1,15 @@
+{
+  "name": "url-checker",
+  "version": "1.0.0",
+  "description": "basic node app to check if urls are exist",
+  "license": "ISC",
+  "author": "tony joss",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}
